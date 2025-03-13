@@ -15,7 +15,7 @@ model = load_model()
 # Cargar datos desde el JSON
 @st.cache_data
 def load_data():
-    file_name = "tu_archivo.json"  # Asegúrate de que el JSON esté en el mismo repositorio
+    file_name = "tabular-actgan-ajustada.json"  # Asegúrate de que el JSON esté en el mismo repositorio
     with open(file_name, 'r', encoding='utf-8') as f:
         data = json.load(f)
     df = pd.DataFrame(data)
