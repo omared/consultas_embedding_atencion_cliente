@@ -5,27 +5,35 @@ import json
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 
-# Convertir embeddings almacenados en el DataFrame a una matriz NumPy
-embeddings = np.vstack(df["embedding"].values)
-
-# Crear un índice FAISS desde cero
-dimension = embeddings.shape[1]
-index = faiss.IndexFlatL2(dimension)
-index.add(embeddings)
-
 # Cargar modelo de embeddings
-model = SentenceTransformer("all-MiniLM-L6-v2")
+@st.cache_resource
+def load_model():
+    return SentenceTransformer("all-MiniLM-L6-v2")
 
-# Cargar datos
-file_name = "tu_archivo.json"  # Asegúrate de tener este archivo en el mismo directorio
+model = load_model()
 
-with open(file_name, 'r', encoding='utf-8') as f:
-    data = json.load(f)
+# Cargar datos desde el JSON
+@st.cache_data
+def load_data():
+    file_name = "tu_archivo.json"  # Asegúrate de que el JSON esté en el mismo repositorio
+    with open(file_name, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    df = pd.DataFrame(data)
 
-df = pd.DataFrame(data)
+    # Generar embeddings de las preguntas
+    df["embedding"] = df["Cliente"].apply(lambda x: model.encode(x, convert_to_numpy=True))
 
-# Cargar índice FAISS
-index = faiss.read_index("index_faiss.bin")
+    # Convertir embeddings a matriz NumPy
+    embeddings = np.vstack(df["embedding"].values)
+
+    # Crear y cargar el índice FAISS
+    dimension = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(embeddings)
+
+    return df, index
+
+df, index = load_data()
 
 # Función para buscar la mejor respuesta
 def buscar_respuesta(pregunta, top_k=1):
@@ -42,6 +50,4 @@ pregunta = st.text_input("Ingrese la consulta del cliente:")
 if st.button("Buscar Respuesta"):
     if pregunta:
         respuesta = buscar_respuesta(pregunta)[0]
-        st.success(f"**Respuesta Sugerida:** {respuesta}")
-    else:
-        st.warning("Por favor ingrese una consulta.")
+        st.success(f"**Respuesta Sugerida:** {respues
