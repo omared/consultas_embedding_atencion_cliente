@@ -50,4 +50,6 @@ pregunta = st.text_input("Ingrese la consulta del cliente:")
 if st.button("Buscar Respuesta"):
     if pregunta:
         respuesta = buscar_respuesta(pregunta)[0]
-        st.success(f"**Respuesta Sugerida:** {respues
+        st.success(f"**Respuesta Sugerida:** {respuesta}")
+    else:
+        st.warning("Por favor ingrese una consulta.")
