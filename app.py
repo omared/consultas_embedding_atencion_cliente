@@ -24,7 +24,7 @@ def load_data():
     # Generar embeddings normalizados
     df["embedding"] = df["Cliente"].apply(lambda x: model.encode(x, convert_to_numpy=True))
     embeddings = np.vstack(df["embedding"].values)
-    embeddings = normalize(embeddings, axis=1)  # Normalizar para mejor búsqueda
+    embeddings = normalize(embeddings, axis=1)  # Normalizar para mejorar la precisión
 
     # Crear índice FAISS
     dimension = embeddings.shape[1]
@@ -37,7 +37,7 @@ df, index = load_data()
 
 # Función para buscar respuesta
 def buscar_respuesta(pregunta, top_k=3):
-    if not pregunta.strip():  # Validar que la pregunta no esté vacía
+    if not pregunta or not pregunta.strip():  # Validar que la pregunta no esté vacía
         return []
 
     pregunta_embedding = model.encode(pregunta, convert_to_numpy=True).reshape(1, -1)
@@ -45,7 +45,11 @@ def buscar_respuesta(pregunta, top_k=3):
 
     _, indices = index.search(pregunta_embedding, top_k)
 
-    respuestas = df.iloc[indices[0]]["Agente"].values if len(indices[0]) > 0 else []
+    # Asegurar que indices no esté vacío y que haya resultados válidos
+    if len(indices) == 0 or len(indices[0]) == 0:
+        return []
+
+    respuestas = df.iloc[indices[0]]["Agente"].values.tolist()
     return respuestas
 
 # Interfaz Streamlit
@@ -56,12 +60,10 @@ pregunta = st.text_input("Ingrese la consulta del cliente:")
 if st.button("Buscar Respuesta"):
     if pregunta:
         respuestas = buscar_respuesta(pregunta)
-        if respuestas:
+
+        if isinstance(respuestas, list) and len(respuestas) > 0:  # Validar que sea lista y no esté vacía
             st.success("**Mejores respuestas sugeridas:**")
             for i, respuesta in enumerate(respuestas):
-                st.write(f"👉 {i+1}. {respuesta}")
-        else:
-            st.warning("No se encontró una respuesta relevante.")
-    else:
-        st.warning("Por favor ingrese una consulta.")
+                st.w
+
 
