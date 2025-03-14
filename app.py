@@ -16,7 +16,7 @@ model = load_model()
 # Cargar datos y crear índice FAISS
 @st.cache_data
 def load_data():
-    file_name = "tu_archivo.json"  # Asegúrate de que el JSON esté en el repositorio
+    file_name = "tabular-actgan-ajustada.json"  # Asegúrate de que el JSON esté en el repositorio
     with open(file_name, 'r', encoding='utf-8') as f:
         data = json.load(f)
     df = pd.DataFrame(data)
